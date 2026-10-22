@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="hi-Latn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HinglishSub – English subtitles ko Hinglish mein badlo</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Hind:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#12141c;--panel:#1b1e29;--line:#2c3040;--ink:#eceef5;--mute:#9097ad;--sub:#ffd84d;--ok:#5fd38d;--bad:#ff7a7a}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 'Hind',system-ui,sans-serif;padding:0 16px 60px}
+.wrap{max-width:900px;margin:0 auto}
+h1,h2{font-family:'Baloo 2',sans-serif;margin:0}
+header{padding:44px 0 26px}
+h1{font-size:clamp(34px,8vw,60px);line-height:1.05;font-weight:800}
+.sub{display:inline-block;margin-top:18px;padding:8px 16px;background:rgba(0,0,0,.75);border-radius:6px;color:var(--sub);font:700 clamp(18px,4.4vw,26px)/1.3 'Baloo 2',sans-serif;text-shadow:0 0 3px #000,0 0 3px #000}
+.lead{color:var(--mute);max-width:56ch;margin:16px 0 0}
+section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;margin-top:18px}
+h2{font-size:22px;margin-bottom:12px}
+label{display:block;font-size:14px;color:var(--mute);margin:12px 0 5px}
+input[type=text],input[type=password],select,textarea{width:100%;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:inherit}
+textarea{min-height:64px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.row{grid-template-columns:1fr}}
+.drop{display:block;border:2px dashed var(--line);border-radius:10px;padding:26px;text-align:center;cursor:pointer;color:var(--mute);margin:0}
+.drop:hover,.drop.on{border-color:var(--sub);color:var(--ink)}
+.drop input{display:none}
+button{font:700 16px 'Baloo 2',sans-serif;background:var(--sub);color:#1a1500;border:0;border-radius:8px;padding:10px 20px;cursor:pointer}
+button.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[contenteditable]:focus-visible{outline:2px solid var(--sub);outline-offset:2px}
+.bar{height:10px;background:var(--bg);border-radius:6px;overflow:hidden;margin:14px 0 6px}
+.bar i{display:block;height:100%;width:0;background:var(--sub);transition:width .3s}
+.status{font-size:14px;color:var(--mute);min-height:22px}
+.status.err{color:var(--bad)}.status.ok{color:var(--ok)}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.tbl{max-height:520px;overflow:auto;border:1px solid var(--line);border-radius:8px;margin-top:12px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+th{position:sticky;top:0;background:var(--panel);font-family:'Baloo 2',sans-serif}
+td.t{color:var(--mute);font-size:12px;white-space:nowrap}
+td.o{color:var(--sub);white-space:pre-wrap}
+td.o.pending{color:var(--mute)}
+td.e{white-space:pre-wrap;color:var(--mute)}
+.note{font-size:13px;color:var(--mute);margin-top:8px}
+a{color:var(--sub)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>HinglishSub</h1>
+  <div class="sub">Bhai, ye line toh bilkul apni si lagegi.</div>
+  <p class="lead">English .srt file upload karo. Word-by-word nahi, ek insaan jaise Hinglish mein subtitles ban jayenge. Timing waisi ki waisi rahegi.</p>
+</header>
+
+<section>
+  <h2>1. Translation engine</h2>
+  <div class="row">
+    <div><label for="mode">Engine</label>
+      <select id="mode">
+        <option value="google">Google Translate (bina key, instant)</option>
+        <option value="gemini">Gemini (free key, fast aur behtar)</option>
+        <option value="deepseek">DeepSeek (apni key, bahut sasta)</option>
+        <option value="free">Free (bina key, abhi band lag raha hai)</option>
+      </select></div>
+    <div><label for="batch">Ek baar mein kitni lines</label>
+      <select id="batch"><option>20</option><option selected>30</option><option>40</option></select></div>
+  </div>
+  <div id="gbox" hidden>
+    <label for="key" id="keylabel"></label>
+    <input type="password" id="key" placeholder="AIza..." autocomplete="off">
+    <label for="model">Model</label><input type="text" id="model" value="">
+  </div>
+  <div class="note" id="modenote"></div>
+</section>
+
+<section>
+  <h2>2. Subtitle file</h2>
+  <label class="drop" id="drop" for="file">.srt file yahan drop karo ya tap karke chuno<input type="file" id="file" accept=".srt,text/plain"></label>
+  <div class="status" id="fileinfo"></div>
+</section>
+
+<section>
+  <h2>3. Style</h2>
+  <div class="row">
+    <div><label for="tone">Tone</label>
+      <select id="tone">
+        <option value="anime">Anime / casual (yaar, bhai wali vibe)</option>
+        <option value="drama">Movie / web series (natural, thoda serious)</option>
+        <option value="formal">Neutral / seedha-saada</option>
+      </select></div>
+    <div><label for="script">Script</label>
+      <select id="script">
+        <option value="roman">Hinglish (Roman letters)</option>
+        <option value="deva">Hindi (Devanagari)</option>
+      </select></div>
+  </div>
+  <label for="names">Names / words jo change nahi hone chahiye (optional)</label>
+  <textarea id="names" placeholder="Naruto, Hokage, Rasengan, Sensei"></textarea>
+  <label for="ctx">Show ke baare mein ek line (optional, translation behtar hota hai)</label>
+  <input type="text" id="ctx" placeholder="Jaise: Shonen ninja anime, hero ka naam Naruto hai">
+  <div class="btns">
+    <button id="go" disabled>Translate karo</button>
+    <button id="stop" class="alt" disabled>Ruko</button>
+  </div>
+  <div class="bar"><i id="fill"></i></div>
+  <div class="status" id="status"></div>
+</section>
+
+<section id="result" hidden>
+  <h2>4. Result</h2>
+  <div class="note">Hinglish wale text par tap karke seedha edit kar sakte ho.</div>
+  <div class="tbl"><table><thead><tr><th>Time</th><th>English</th><th>Hinglish</th></tr></thead><tbody id="rows"></tbody></table></div>
+  <div class="btns">
+    <button id="dl" disabled>Hinglish .srt download</button>
+    <button id="retry" class="alt" hidden>Fail hui lines dobara try karo</button>
+  </div>
+</section>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let cues=[],fname='subtitle',stopFlag=false,running=false;
+
+// saved settings
+const CFG={
+  gemini:{label:'Free key yahan se lo: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>. Key sirf tumhare browser mein save hoti hai.',ph:'AIza...',model:'gemini-2.5-flash',note:'Gemini free key ke saath speed achhi aur quality behtar milti hai.'},
+  deepseek:{label:'Key yahan se lo: <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener">platform.deepseek.com</a>. Thoda balance top-up karna padta hai. Key sirf tumhare browser mein save hoti hai.',ph:'sk-...',model:'deepseek-chat',note:'DeepSeek bahut sasta hai aur Hinglish ke liye achha chalta hai.'}
+};
+let curMode='free';
+const store=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+const load=k=>{try{return localStorage.getItem(k)||''}catch(e){return ''}};
+function saveCur(){if(CFG[curMode]){store('hs_key_'+curMode,$('key').value.trim());store('hs_model_'+curMode,$('model').value.trim())}}
+function applyMode(){
+  saveCur();
+  const m=$('mode').value;curMode=m;
+  $('gbox').hidden=!CFG[m];
+  if(m==='free'){
+    $('modenote').textContent='Ye mode Pollinations use karta hai, jo ab key maang sakta hai. Gemini ya DeepSeek use karna behtar hai.';
+  }else if(m==='google'){
+    $('modenote').textContent='Bina key aur tez hai. Lekin ye machine translation hai: Hinglish thoda literal ya shuddh Hindi jaisa lag sakta hai, aur names wala option best-effort hai. Human jaisi quality ke liye Gemini ya DeepSeek chuno.';
+  }else{
+    const c=CFG[m];
+    $('keylabel').innerHTML=c.label;$('key').placeholder=c.ph;
+    $('key').value=load('hs_key_'+m)||(m==='gemini'?load('hs_key'):'');
+    $('model').value=load('hs_model_'+m)||c.model;
+    $('modenote').textContent=c.note;
+  }
+  store('hs_mode',m);
+}
+$('mode').value=load('hs_mode')||'google';
+$('mode').addEventListener('change',applyMode);
+$('key').addEventListener('change',saveCur);$('model').addEventListener('change',saveCur);
+applyMode();
+
+function parseSRT(t){
+  t=t.replace(/^\uFEFF/,'').replace(/\r/g,'').trim();
+  return t.split(/\n\s*\n/).map(b=>{
+    const l=b.split('\n'),i=l.findIndex(x=>x.includes('-->'));
+    if(i<0)return null;
+    return {time:l[i].trim(),text:l.slice(i+1).join('\n').trim(),out:'',done:false};
+  }).filter(c=>c&&c.text);
+}
+function buildSRT(){
+  return cues.map((c,i)=>`${i+1}\n${c.time}\n${(c.done&&c.out?c.out:c.text)}\n`).join('\n');
+}
+
+function setStatus(msg,cls){const s=$('status');s.textContent=msg;s.className='status '+(cls||'')}
+
+function loadFile(f){
+  if(!f)return;
+  fname=f.name.replace(/\.srt$/i,'');
+  const r=new FileReader();
+  r.onload=()=>{
+    cues=parseSRT(r.result);
+    if(!cues.length){$('fileinfo').textContent='Is file mein subtitles nahi mili. Sahi .srt chuno.';$('fileinfo').className='status err';$('go').disabled=true;return}
+    $('fileinfo').textContent=f.name+' loaded: '+cues.length+' lines';$('fileinfo').className='status ok';
+    $('go').disabled=false;renderRows();$('result').hidden=false;$('dl').disabled=true;$('retry').hidden=true;$('fill').style.width='0';setStatus('');
+  };
+  r.readAsText(f);
+}
+$('file').addEventListener('change',e=>loadFile(e.target.files[0]));
+const drop=$('drop');
+['dragenter','dragover'].forEach(n=>drop.addEventListener(n,e=>{e.preventDefault();drop.classList.add('on')}));
+['dragleave','drop'].forEach(n=>drop.addEventListener(n,e=>{e.preventDefault();drop.classList.remove('on')}));
+drop.addEventListener('drop',e=>loadFile(e.dataTransfer.files[0]));
+
+function renderRows(){
+  const tb=$('rows');tb.innerHTML='';
+  cues.forEach((c,i)=>{
+    const tr=document.createElement('tr');
+    const a=document.createElement('td');a.className='t';a.textContent=c.time.split(' --> ')[0].replace(/,\d+$/,'');
+    const b=document.createElement('td');b.className='e';b.textContent=c.text;
+    const o=document.createElement('td');o.id='o'+i;o.className='o pending';o.textContent='...';
+    o.contentEditable='true';
+    o.addEventListener('input',()=>{c.out=o.innerText.replace(/\n+$/,'');c.done=true;o.classList.remove('pending')});
+    tr.append(a,b,o);tb.appendChild(tr);
+  });
+}
+function showCue(i){
+  const o=$('o'+i),c=cues[i];if(!o)return;
+  if(c.done){o.textContent=c.out;o.classList.remove('pending')}
+}
+
+const SYS=`You are a professional Indian subtitle translator who converts English subtitles into natural spoken Hinglish, exactly how a real person in India would say it. You are NOT a literal word-by-word translator.
+Rules:
+- Translate the meaning, emotion and speaking style. Use everyday spoken Hindi words mixed with English where Indians naturally do (e.g. "plan", "problem", "sorry", "please").
+- Idioms and jokes must be re-created naturally, never translated literally.
+- Keep each line short and easy to read on screen. Keep line breaks (\\n) where the original has them.
+- Keep names, places, attack names and technical terms as they are.
+- Keep sound cues like [music] or (laughs) and formatting tags like <i> ... </i>, translating only the words inside.
+- Never merge, skip or reorder lines. Output must have exactly as many items as the input lines.
+- Return ONLY a JSON array of strings.`;
+
+function stylePrompt(){
+  const tone={anime:'Casual youthful anime tone. Friends say "yaar", "bhai"; honorifics like -san, -kun, Sensei stay as they are.',drama:'Natural movie / web series tone, emotionally accurate, not too slangy.',formal:'Neutral, clear, simple everyday Hinglish.'}[$('tone').value];
+  const script=$('script').value==='roman'?'Write in Roman script (Hinglish), e.g. "Tum kya kar rahe ho?". Do not use Devanagari.':'Write in Devanagari script (Hindi), keeping common English words in Devanagari too.';
+  return tone+' '+script;
+}
+
+async function callGemini(prompt,key,model){
+  for(let a=0;a<4;a++){
+    let r;
+    try{
+      r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-goog-api-key':key},
+        body:JSON.stringify({
+          systemInstruction:{parts:[{text:SYS}]},
+          contents:[{role:'user',parts:[{text:prompt}]}],
+          generationConfig:{temperature:0.7,responseMimeType:'application/json'}
+        })
+      });
+    }catch(e){await sleep(2000*(a+1));continue}
+    if(r.status===429||r.status>=500){await sleep(6000*(a+1));continue}
+    const j=await r.json();
+    if(!r.ok)throw new Error((j.error&&j.error.message)||('HTTP '+r.status));
+    const t=j.candidates&&j.candidates[0]&&j.candidates[0].content&&j.candidates[0].content.parts.map(p=>p.text||'').join('');
+    if(!t)continue;
+    try{const arr=JSON.parse(t.replace(/```json|```/g,'').trim());if(Array.isArray(arr))return arr}catch(e){}
+  }
+  return null;
+}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+//TR-START
+const DV={'अ':'a','आ':'aa','इ':'i','ई':'ee','उ':'u','ऊ':'oo','ऋ':'ri','ए':'e','ऐ':'ai','ओ':'o','औ':'au','ऑ':'o'};
+const DM={'ा':'aa','ि':'i','ी':'ee','ु':'u','ू':'oo','े':'e','ै':'ai','ो':'o','ौ':'au','ृ':'ri','ॉ':'o'};
+const DC={'क':'k','ख':'kh','ग':'g','घ':'gh','ङ':'n','च':'ch','छ':'chh','ज':'j','झ':'jh','ञ':'n','ट':'t','ठ':'th','ड':'d','ढ':'dh','ण':'n','त':'t','थ':'th','द':'d','ध':'dh','न':'n','प':'p','फ':'f','ब':'b','भ':'bh','म':'m','य':'y','र':'r','ल':'l','व':'v','श':'sh','ष':'sh','स':'s','ह':'h','क़':'q','ज़':'z','ड़':'r','ढ़':'rh','फ़':'f'};
+function toRoman(s){
+  const ch=[...s.replace(/़/g,'')];let o='';
+  for(let i=0;i<ch.length;i++){
+    const c=ch[i],n=ch[i+1];
+    if(c in DC){
+      o+=DC[c];
+      if(n&&n in DM){let m=DM[n];const nx=ch[i+2];if(!(nx&&(nx in DC||nx in DV)))m={aa:'a',ee:'i',oo:'u'}[m]||m;o+=m;i++}
+      else if(n==='्'){i++}
+      else if(n&&(n in DC||n in DV||n==='ं'||n==='ँ'))o+='a';
+    }else if(c in DV)o+=DV[c];
+    else if(c==='ं'||c==='ँ')o+='n';
+    else if(c==='ः')o+='h';
+    else if(c==='।')o+='.';
+    else o+=c;
+  }
+  return o;
+}
+//TR-END
+
+async function gtFetch(q){
+  const url='https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=hi&dt=t&dt=rm&q='+encodeURIComponent(q);
+  for(let a=0;a<3;a++){
+    try{
+      const r=await fetch(url);
+      if(r.status===429){lastErr='Google ne limit laga di (HTTP 429)';await sleep(3000*(a+1));continue}
+      if(!r.ok){lastErr='Google HTTP '+r.status;await sleep(1500);continue}
+      const j=await r.json();let deva='',rom='';
+      (j[0]||[]).forEach(e=>{if(e[0])deva+=e[0];else if(typeof e[2]==='string')rom+=e[2]+' '});
+      if(deva)return {deva:deva,roman:rom.trim()};
+    }catch(e){lastErr='Browser ne request block ki (translate.googleapis.com)';break}
+  }
+  try{
+    const r=await fetch('https://api.mymemory.translated.net/get?langpair=en|hi&q='+encodeURIComponent(q));
+    const j=await r.json();
+    if(j.responseStatus==200&&j.responseData&&j.responseData.translatedText)return {deva:j.responseData.translatedText,roman:''};
+  }catch(e){}
+  throw new Error(lastErr||'Translate nahi hua');
+}
+async function gtLine(line,names,roman){
+  if(!/[A-Za-z]/.test(line))return line;
+  let q=line;
+  names.forEach((n,k)=>{q=q.replace(new RegExp('\\b'+n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','gi'),'QNAME'+k)});
+  const res=await gtFetch(q);
+  let t=roman?(res.roman||toRoman(res.deva)):res.deva;
+  names.forEach((n,k)=>{t=t.replace(new RegExp('q\\s*name\\s*'+k+'(?!\\d)','gi'),n)});
+  return t.trim();
+}
+async function gtCue(text,names,roman){
+  const wrapI=/^<i>[\s\S]*<\/i>$/i.test(text.trim());
+  const out=[];
+  for(const line of text.replace(/<[^>]+>/g,'').split('\n'))out.push(await gtLine(line,names,roman));
+  const r=out.join('\n');
+  return wrapI?'<i>'+r+'</i>':r;
+}
+async function runGoogle(onlyFailed){
+  running=true;stopFlag=false;lastErr='';
+  $('go').disabled=true;$('stop').disabled=false;$('retry').hidden=true;
+  const idx=cues.map((c,i)=>i).filter(i=>onlyFailed?!cues[i].done:true);
+  if(!onlyFailed)cues.forEach(c=>{c.done=false;c.out=''});
+  const names=$('names').value.split(',').map(x=>x.trim()).filter(Boolean);
+  const roman=$('script').value==='roman';
+  let n=0,p=0;
+  async function worker(){
+    while(p<idx.length&&!stopFlag){
+      const i=idx[p++];
+      try{const o=await gtCue(cues[i].text,names,roman);cues[i].out=o;cues[i].done=!!o;showCue(i)}catch(e){lastErr=e.message}
+      n++;$('fill').style.width=Math.round(100*n/idx.length)+'%';setStatus(`Translate ho raha hai... ${n}/${idx.length}`);
+    }
+  }
+  await Promise.all(Array.from({length:5},worker));
+  running=false;$('go').disabled=false;$('stop').disabled=true;
+  const done=cues.filter(c=>c.done).length,left=cues.length-done;
+  $('dl').disabled=done===0;$('retry').hidden=!(left&&done);
+  if(stopFlag)setStatus(`Roka gaya. ${done} lines ho chuki hain, aap abhi bhi download kar sakte ho.`);
+  else if(left)setStatus(`${left} lines translate nahi ho payi (English hi rahegi).`+(lastErr?' Wajah: '+lastErr+'.':'')+' Dobara try karo, ya Gemini / DeepSeek mode use karo.','err');
+  else setStatus('Ho gaya! Ab download karo.','ok');
+}
+
+async function callDeepSeek(prompt,key,model){
+  for(let a=0;a<4;a++){
+    let r;
+    try{
+      r=await fetch('https://api.deepseek.com/chat/completions',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+        body:JSON.stringify({model:model||'deepseek-chat',temperature:1.3,messages:[{role:'system',content:SYS},{role:'user',content:prompt}]})
+      });
+    }catch(e){lastErr='Browser ne request block ki (api.deepseek.com)';await sleep(2000*(a+1));continue}
+    if(r.status===429||r.status>=500){lastErr='Server busy ya limit (HTTP '+r.status+')';await sleep(5000*(a+1));continue}
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error((j.error&&j.error.message)||('HTTP '+r.status));
+    const arr=extractArr((j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content)||'');
+    if(arr)return arr;
+    lastErr='AI ne JSON list nahi di';
+  }
+  return null;
+}
+
+// Free mode: Pollinations (OpenAI-compatible, no key)
+let lastErr='';
+function extractArr(t){
+  const m=t.match(/\[[\s\S]*\]/);
+  if(m){try{const a=JSON.parse(m[0]);if(Array.isArray(a))return a}catch(e){}}
+  const o=t.match(/\{[\s\S]*\}/);
+  if(o){try{const j=JSON.parse(o[0]);const v=Object.values(j).find(Array.isArray);if(v)return v}catch(e){}}
+  return null;
+}
+async function callFree(prompt){
+  const urls=['https://text.pollinations.ai/openai','https://gen.pollinations.ai/v1/chat/completions'];
+  for(let a=0;a<4;a++){
+    const url=urls[a%2],host=url.split('/')[2];
+    let r;
+    try{
+      r=await fetch(url,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({model:'openai',messages:[{role:'system',content:SYS},{role:'user',content:prompt}]})
+      });
+    }catch(e){lastErr='Browser ne request block ki ('+host+')';await sleep(3000);continue}
+    if(r.status===429||r.status>=500){lastErr='Server busy ya limit (HTTP '+r.status+', '+host+')';await sleep(a<1?16000:8000);continue}
+    if(r.status===401||r.status===403){lastErr='Server ab key maang raha hai (HTTP '+r.status+', '+host+')';continue}
+    if(!r.ok){lastErr='HTTP '+r.status+' ('+host+')';continue}
+    let t='';
+    try{const j=await r.json();t=j.choices[0].message.content||''}catch(e){lastErr='Server ka jawab samajh nahi aaya';continue}
+    const arr=extractArr(t);
+    if(arr)return arr;
+    lastErr='AI ne JSON list nahi di';
+  }
+  return null;
+}
+
+async function run(onlyFailed){
+  if($('mode').value==='google')return runGoogle(onlyFailed);
+  const mode=$('mode').value,key=$('key').value.trim(),model=$('model').value.trim();
+  if(CFG[mode]&&!key){setStatus('Is engine ke liye API key daalo.','err');return}
+  saveCur();
+  running=true;stopFlag=false;lastErr='';$('go').disabled=true;$('stop').disabled=false;$('retry').hidden=true;
+  const size=+$('batch').value;
+  const idx=cues.map((c,i)=>i).filter(i=>onlyFailed?!cues[i].done:true);
+  if(!onlyFailed)cues.forEach(c=>{c.done=false;c.out=''});
+  const names=$('names').value.trim(),ctx=$('ctx').value.trim(),style=stylePrompt();
+  let doneCount=cues.filter(c=>c.done).length,errMsg='';
+  for(let s=0;s<idx.length;s+=size){
+    if(stopFlag)break;
+    const part=idx.slice(s,s+size);
+    const prev=cues.slice(Math.max(0,part[0]-3),part[0]).map(c=>c.text);
+    const payload={style:style,show_context:ctx||undefined,keep_unchanged:names||undefined,previous_lines_for_context_only:prev,lines_to_translate:part.map(i=>cues[i].text)};
+    setStatus(`Translate ho raha hai... ${doneCount}/${cues.length}`);
+    let res;
+    try{const p=JSON.stringify(payload);res=mode==='free'?await callFree(p):mode==='deepseek'?await callDeepSeek(p,key,model):await callGemini(p,key,model)}
+    catch(e){errMsg=e.message;break}
+    if(res&&res.length===part.length){
+      part.forEach((i,k)=>{cues[i].out=String(res[k]).trim();cues[i].done=!!cues[i].out;showCue(i)});
+      doneCount=cues.filter(c=>c.done).length;
+    }
+    $('fill').style.width=Math.round(100*(s+part.length)/idx.length)+'%';
+    if(s+size<idx.length)await sleep(mode==='free'?15500:mode==='deepseek'?800:4200);
+  }
+  running=false;$('go').disabled=false;$('stop').disabled=true;
+  const left=cues.filter(c=>!c.done).length;
+  $('dl').disabled=doneCount===0;
+  if(errMsg){setStatus('Error: '+errMsg+(CFG[mode]?' (API key ya model name check karo)':''),'err')}
+  else if(stopFlag){setStatus(`Roka gaya. ${doneCount} lines ho chuki hain, aap abhi bhi download kar sakte ho.`)}
+  else if(left){setStatus(`${left} lines translate nahi ho payi (English hi rahegi).`+(lastErr?' Wajah: '+lastErr+'.':'')+' Dobara try karo, ya Gemini / DeepSeek mode use karo.','err')}
+  else{setStatus('Ho gaya! Ab download karo.','ok');$('fill').style.width='100%'}
+  $('retry').hidden=!left||!doneCount&&!errMsg&&false;
+  if(left&&doneCount)$('retry').hidden=false;
+}
+$('go').addEventListener('click',()=>run(false));
+$('retry').addEventListener('click',()=>run(true));
+$('stop').addEventListener('click',()=>{stopFlag=true});
+$('dl').addEventListener('click',()=>{
+  const blob=new Blob([buildSRT()],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname+'.hinglish.srt';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+});
+</script>
+</body>
+</html>
